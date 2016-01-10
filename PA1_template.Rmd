@@ -7,19 +7,72 @@ output:
 
 
 ## Loading and preprocessing the data
+## First, load the data into a data frame. 
+activityData <- read.csv('./repdata-data-activity/activity.csv')
 
+## Use the head and str functions to see the data types and what the data looks like.
+head(activityData)
+str(activityData)
+
+## Create a histogram to see how many steps are usually taken in a day.
+dailyTotal <- tapply(activityData$steps, activityData$date, sum)
+hist(dailyTotal)
 
 
 ## What is mean total number of steps taken per day?
-
+## To find out what the mean total number of steps taken per day is, use the mean function, ignoring NA values.
+mean(dailyTotal, na.rm = TRUE)
+median(dailyTotal, na.rm = TRUE)
 
 
 ## What is the average daily activity pattern?
 
+## To see the average daily activity pattern, we will first get the average number of steps taken during each 5-minute interval:
 
+intervalAvg <- tapply(activityData$steps, activityData$interval, mean, na.rm = TRUE)
+
+## And then we will plot those averages:
+plot.ts(unique(activityData$interval), intervalAvg, type="l")
 
 ## Imputing missing values
 
+## In order to remove NA values, we will substitute each NA value for the average number of steps taken during that interval across all days.
+## To do that, we will use the data.table package
+library("data.table")
+activityDataDT <- data.table(activityData)
 
+## First, we will calculate the average number of steps during each interval across all days.
+averageStepsByIntervalDT <- test[, list(mean = mean(steps, na.rm=TRUE)), by=interval]
+
+## Then we will create a new data table that contains all of the data from the original activity data data set merged with the average number of steps for each interval.
+activityDataImputed <- merge(activityDataDT, averageStepsByIntervalDT, by="interval")
+
+## Then we will convert the column type of steps from int to num so that it can handle doubles.
+activityDataImputed$steps <- as.double(activityDataImputed$steps)
+
+## For each NA value, we will put in its place its corresponding average interval value.
+activityDataImputed[is.na(steps), steps := mean]
+
+## Histogram of daily totals, with NA values replaced.
+dailyTotalImputed <- tapply(activityDataImputed$steps, activityDataImputed$date, sum)
+hist(dailyTotalImputed)
+
+## The new mean and median values. The mean value did not change, but the median value did. It makes sense that the average value did not change, as the values subsituted for the NA values were themselves averages of the whole set.
+mean(dailyTotalImputed, na.rm = TRUE)
+median(dailyTotalImputed, na.rm = TRUE)
 
 ## Are there differences in activity patterns between weekdays and weekends?
+There do appear to be some differences in the activity patterns between weekdays and weekends. While the activity appears to begin and end around the same times on weekdays and weekends, the average number of steps taken throughout the day are different. On weekdays, there appear to be spikes around mid morning, noon, and the late evening. These could be explained by people commuting to and from work and taking a lunch break. On weekends, the average number of steps taken throughout the day is much mor even.
+
+## First, convert the type of the date column to Date.
+activityDataImputed$date <- as.Date(activityDataImputed$date)
+weekendVector <- c("Saturday", "Sunday")
+
+## Then determine which rows correspond to weekends.
+isWeekday <- weekdays(activityDataImputed$date)
+activityDataImputed$dayType <- as.factor(isWeekday %in% weekendVector)
+
+
+## Plot using the ggplot2 library.
+library("ggplot2")
+qplot(interval, steps, data = activityDataImputed, facets = . ~ dayType, stat="summary", fun.y = "mean", main = "Average Number of Steps Taken Per 5 Minute Interval", type="l")
