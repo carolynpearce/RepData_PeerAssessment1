@@ -65,8 +65,9 @@ median(dailyTotalImputed, na.rm = TRUE)
 There do appear to be some differences in the activity patterns between weekdays and weekends. While the activity appears to begin and end around the same times on weekdays and weekends, the average number of steps taken throughout the day are different. On weekdays, there appear to be spikes around mid morning, noon, and the late evening. These could be explained by people commuting to and from work and taking a lunch break. On weekends, the average number of steps taken throughout the day is much mor even.
 
 ## First, convert the type of the date column to Date.
-activityDataImputed$date <- as.Date(activityDataImputed$date)
+```activityDataImputed$date <- as.Date(activityDataImputed$date)
 weekendVector <- c("Saturday", "Sunday")
+```
 
 ## Then determine which rows correspond to weekends.
 isWeekday <- weekdays(activityDataImputed$date)
