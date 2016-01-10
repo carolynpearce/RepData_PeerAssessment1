@@ -13,7 +13,7 @@ activityData <- read.csv('./repdata-data-activity/activity.csv')
 ```
 
 Use the head and str functions to see the data types and what the data looks like.
-```{r head str}
+```{r head, str}
 head(activityData)
 str(activityData)
 ```
