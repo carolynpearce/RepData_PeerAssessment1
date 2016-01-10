@@ -9,17 +9,17 @@ output:
 ## Loading and preprocessing the data
 First, load the data into a data frame.
 ```{r}
-activityData <- read.csv('./repdata-data-activity/activity.csv')
+activityData <- read.csv('C:/Users/cjpearce/Documents/Reproducible Research/repdata-data-activity/activity.csv')
 ```
 
 Use the head and str functions to see the data types and what the data looks like.
-```{r head, str}
+```{r}
 head(activityData)
 str(activityData)
 ```
 
 Create a histogram to see how many steps are usually taken in a day.
-```{r hist}
+```{r}
 dailyTotal <- tapply(activityData$steps, activityData$date, sum)
 hist(dailyTotal)
 ```
@@ -27,7 +27,7 @@ hist(dailyTotal)
 
 ## What is mean total number of steps taken per day?
 To find out what the mean total number of steps taken per day is, use the mean function, ignoring NA values.
-```{r mean median}
+```{r}
 mean(dailyTotal, na.rm = TRUE)
 median(dailyTotal, na.rm = TRUE)
 ```
@@ -42,7 +42,7 @@ intervalAvg <- tapply(activityData$steps, activityData$interval, mean, na.rm = T
 ```
 
 And then we will plot those averages:
-```{r plot.ts}
+```{r}
 plot.ts(unique(activityData$interval), intervalAvg, type="l")
 ```
 
@@ -57,36 +57,36 @@ activityDataDT <- data.table(activityData)
 
 First, we will calculate the average number of steps during each interval across all days.
 ```{r}
-averageStepsByIntervalDT <- test[, list(mean = mean(steps, na.rm=TRUE)), by=interval]
+averageStepsByIntervalDT <- activityDataDT[, list(mean = mean(steps, na.rm=TRUE)), by=interval]
 ```
 
 Then we will create a new data table that contains all of the data from the original activity data data set merged with the average number of steps for each interval.
-```{r head}
+```{r}
 activityDataImputed <- merge(activityDataDT, averageStepsByIntervalDT, by="interval")
 head(activityDataImputed)
 ```
 
 Then we will convert the column type of steps from int to num so that it can handle doubles.
-```{r str}
+```{r}
 activityDataImputed$steps <- as.double(activityDataImputed$steps)
 str(activityDataImputed)
 ```
 
 For each NA value, we will put in its place its corresponding average interval value.
-```{r head}
+```{r}
 activityDataImputed[is.na(steps), steps := mean]
 head(activityDataImputed)
 ```
 
 Then we will view the histogram 
-```{r hist}
+```{r}
 ## Histogram of daily totals, with NA values replaced.
 dailyTotalImputed <- tapply(activityDataImputed$steps, activityDataImputed$date, sum)
 hist(dailyTotalImputed)
 ```
 
 The new mean and median values. The mean value did not change, but the median value did. It makes sense that the average value did not change, as the values subsituted for the NA values were themselves averages of the whole set.
-```{r mean median}
+```{r}
 mean(dailyTotalImputed, na.rm = TRUE)
 median(dailyTotalImputed, na.rm = TRUE)
 ```
@@ -109,7 +109,7 @@ activityDataImputed$dayType <- as.factor(isWeekday %in% weekendVector)
 ```
 
 Finally, plot the average number of steps taken per 5 minute interval. Weekdays on left, weekends on right.
-```{r qplot}
+```{r}
 ## Plot using the ggplot2 library.
 library("ggplot2")
 qplot(interval, steps, data = activityDataImputed, facets = . ~ dayType, stat="summary", fun.y = "mean", main = "Average Number of Steps Taken Per 5 Minute Interval", type="l")
